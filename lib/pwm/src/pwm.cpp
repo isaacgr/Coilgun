@@ -10,13 +10,15 @@
 
 #define BVV(bit, val) ((val)?_BV(bit):0)
 
-void pwm_set_duty(uint16_t duty, uint16_t frequency)
+int pwm_set_duty(uint16_t duty, uint16_t frequency)
 {
   ICR1 = frequency;
   OCR1A = duty;
+
+  return 0;
 }
 
-void pwm_init()
+int pwm_init(void)
 {
 	DDRB |= _BV(DDB1); /* set pin 6 of PORTD for output*/
 
@@ -28,4 +30,6 @@ void pwm_init()
   TCCR1B =
     BVV(CS10, 1) | BVV(CS11, 0) | BVV(CS12, 0) /* F_CPU/1024 */
   | BVV(WGM12, 1) | BVV(WGM13, 1); /* Fast PWM update on OCRA */
+
+  return 0;
 }
