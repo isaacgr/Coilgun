@@ -10,10 +10,10 @@
 
 #define BVV(bit, val) ((val)?_BV(bit):0)
 
-int pwm_set_duty(uint16_t duty, uint16_t frequency)
+int pwm_set(uint16_t DUTY, uint16_t FREQUENCY)
 {
-  ICR1 = frequency;
-  OCR1A = duty;
+  ICR1 = FREQUENCY;
+  OCR1A = DUTY;
 
   return 0;
 }
