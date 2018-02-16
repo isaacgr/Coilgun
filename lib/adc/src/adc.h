@@ -7,6 +7,6 @@
 #ifndef ADC_H
 #define ADC_H
 
-int adc_init(void);
+int adc_init(void); // initialize adc module, return 0 on success
 
 #endif
