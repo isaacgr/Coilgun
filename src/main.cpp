@@ -10,12 +10,10 @@
 #include <Arduino.h>
 #include <pwm.h>
 #include <adc.h>
-
-#define MAX_DUTY OCR0A
+#include <defines.h>
 
 volatile uint16_t OUTPUT_VOLTAGE;
 volatile uint8_t OUTPUT_VOLTAGE_LSB;
-
 volatile uint8_t DUTY = 0;
 const uint16_t SETPOINT = 512;
 
@@ -29,12 +27,20 @@ int main(void)
 
   while(1) // infinite loop
   {
-    _delay_ms(1);
     if (OUTPUT_VOLTAGE > SETPOINT){
+      if (DUTY >= MAX_DUTY){
+        pwm_set(MAX_DUTY);
+        continue;
+      }
       DUTY++;
       pwm_set(DUTY);
     }
     else if (OUTPUT_VOLTAGE < SETPOINT){
+      if (DUTY
+        <= MIN_DUTY){
+        pwm_set(MIN_DUTY);
+        continue;
+      }
       DUTY--;
       pwm_set(DUTY);
     }
