@@ -36,8 +36,7 @@ int main(void)
       pwm_set(DUTY);
     }
     else if (OUTPUT_VOLTAGE < SETPOINT){
-      if (DUTY
-        <= MIN_DUTY){
+      if (DUTY <= MIN_DUTY){
         pwm_set(MIN_DUTY);
         continue;
       }
