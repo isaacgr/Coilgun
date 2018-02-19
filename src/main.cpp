@@ -13,9 +13,11 @@
 #include <defines.h>
 
 volatile uint16_t OUTPUT_VOLTAGE;
-volatile uint8_t OUTPUT_VOLTAGE_LSB;
+volatile uint16_t ADC_VALUE;
+volatile uint8_t ADCLOW;
+
 volatile uint8_t DUTY = 0;
-const uint16_t SETPOINT = 512;
+volatile uint16_t SETPOINT;
 
 int main(void)
 {
@@ -51,6 +53,20 @@ int main(void)
 
 ISR(ADC_vect)
 {
-  OUTPUT_VOLTAGE_LSB = ADCL;
-  OUTPUT_VOLTAGE = ADCH<<8 | OUTPUT_VOLTAGE_LSB;
+  static uint8_t firstTime = 1;
+
+  ADCLOW = ADCL;
+  ADC_VALUE = ADCH<<8 | ADCLOW;
+
+  if (firstTime == 1){
+    firstTime = 0;
+  }
+  else if (ADMUX == 64){
+    SETPOINT = ADC_VALUE;
+    ADMUX = 65;
+  }
+  else if (ADMUX == 65){
+    OUTPUT_VOLTAGE = ADC_VALUE;
+    ADMUX = 64;
+  }
 }
