@@ -14,7 +14,7 @@ int adc_init(void)
   ADMUX |= (0<<ADLAR);  // left justified, 10bit resolution
 
   ADCSRA |= (1<<ADPS2) | (1<<ADPS1) | (0<<ADPS0); // 64 prescaler
-  ADCSRA |= (1<<ADATE); // enable auto trigger
+  //ADCSRA |= (1<<ADATE); // enable auto trigger
 
   ADCSRB = 0; // free running mode
 
