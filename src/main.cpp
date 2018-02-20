@@ -6,7 +6,6 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <util/delay.h>
 #include <Arduino.h>
 #include <pwm.h>
 #include <adc.h>
@@ -29,6 +28,7 @@ int main(void)
 
   while(1) // infinite loop
   {
+    //Serial.printf("SETPOINT %d\nOUTPUT: %d\n", SETPOINT, OUTPUT_VOLTAGE);
     if (OUTPUT_VOLTAGE > SETPOINT){
       if (DUTY >= MAX_DUTY){
         pwm_set(MAX_DUTY);
@@ -53,20 +53,22 @@ int main(void)
 
 ISR(ADC_vect)
 {
-  static uint8_t firstTime = 1;
+  static uint8_t tmp;
+  tmp = ADMUX;
+  tmp &= 0X0F;
 
   ADCLOW = ADCL;
   ADC_VALUE = ADCH<<8 | ADCLOW;
 
-  if (firstTime == 1){
-    firstTime = 0;
+  switch (tmp) {
+    case 0:
+      ADMUX++;
+      OUTPUT_VOLTAGE = ADC_VALUE;
+      break;
+    case 1:
+      ADMUX &= 0XF8;
+      SETPOINT = ADC_VALUE;
+      break;
   }
-  else if (ADMUX == 64){
-    SETPOINT = ADC_VALUE;
-    ADMUX = 65;
-  }
-  else if (ADMUX == 65){
-    OUTPUT_VOLTAGE = ADC_VALUE;
-    ADMUX = 64;
-  }
+  ADCSRA |= 1<<ADSC;
 }
