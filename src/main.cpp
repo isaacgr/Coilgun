@@ -27,9 +27,9 @@ int main(void)
   pwm_init();
   pwm_set(DUTY);
   adc_init();
+  timer2_init();
   lcd.begin(16,2);               // initialize the lcd
   lcd.home ();                   // go home
-  lcd.print("Hello, Quincey!");
 
   sei();
 
@@ -77,4 +77,8 @@ ISR(ADC_vect)
       break;
   }
   ADCSRA |= 1<<ADSC; // start new conversion
+}
+
+ISR(TIMER2_COMPA_vect){
+
 }
