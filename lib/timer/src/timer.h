@@ -4,8 +4,8 @@
  * Date:
  */
 
-#ifndef PWM_H
-#define PWM_H
+#ifndef TIMER_H
+#define TIMER_H
 #include "stdint.h"
 
 int pwm_set(uint16_t DUTY); // set the duty cycle
