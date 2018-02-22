@@ -7,16 +7,19 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <Arduino.h>
-#include <pwm.h>
+#include <timer.h>
 #include <adc.h>
 #include <defines.h>
+#include <LiquidCrystal.h>
 
 volatile uint16_t OUTPUT_VOLTAGE;
 volatile uint16_t ADC_VALUE;
 volatile uint8_t ADCLOW;
-
-volatile uint8_t DUTY = 0;
 volatile uint16_t SETPOINT;
+volatile uint8_t DUTY = 0;
+
+// LiquidCrystal lcd(RS, E, D4, D5, D6, D7);
+LiquidCrystal lcd(12, 11, 7, 4, 3, 2);
 
 int main(void)
 {
@@ -24,11 +27,14 @@ int main(void)
   pwm_init();
   pwm_set(DUTY);
   adc_init();
+  lcd.begin(16,2);               // initialize the lcd
+  lcd.home ();                   // go home
+  lcd.print("Hello, Quincey!");
+
   sei();
 
   while(1) // infinite loop
   {
-    //Serial.printf("SETPOINT %d\nOUTPUT: %d\n", SETPOINT, OUTPUT_VOLTAGE);
     if (OUTPUT_VOLTAGE > SETPOINT){
       if (DUTY >= MAX_DUTY){
         pwm_set(MAX_DUTY);
@@ -70,5 +76,5 @@ ISR(ADC_vect)
       SETPOINT = ADC_VALUE;
       break;
   }
-  ADCSRA |= 1<<ADSC;
+  ADCSRA |= 1<<ADSC; // start new conversion
 }
