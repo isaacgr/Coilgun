@@ -1,7 +1,7 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
-#define MAX_DUTY OCR0A
-#define MIN_DUTY OCR0A*0.01
+#define MAX_DUTY 255
+#define MIN_DUTY 255*0.01
 
 #endif
