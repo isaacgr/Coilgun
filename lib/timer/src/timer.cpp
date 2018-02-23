@@ -28,12 +28,13 @@ int pwm_init(void)
   return 0;
 }
 
-int timer2_init(void){
-
-  TCCR2A |= (1<<WGM21);
-  OCR2A = 0XF9;
-  TIMSK2 |= (1<<OCIE2A);
-  TCCR2B |= (1<<CS22) | (1<<CS21);
+int lcd_timer_init(void)
+{
+  // 30Hz timer
+  TCCR2A |= (1<<WGM21); //CTC mode
+  OCR2A = 0XFF;
+  TIMSK2 |= (1<<OCIE2A); //enable timer a interrupt
+  TCCR2B |= (1<<CS22) | (1<<CS21) | (1<<CS20); // 1024 prescaler
 
   return 0;
 }
