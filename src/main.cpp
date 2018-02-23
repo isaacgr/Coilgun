@@ -17,6 +17,7 @@ volatile uint16_t ADC_VALUE;
 volatile uint8_t ADCLOW;
 volatile uint16_t SETPOINT;
 volatile uint8_t DUTY = 0;
+volatile uint8_t TIMER_DELAY = 0;
 
 // LiquidCrystal lcd(RS, E, D4, D5, D6, D7);
 LiquidCrystal lcd(12, 11, 7, 4, 3, 2);
@@ -27,9 +28,9 @@ int main(void)
   pwm_init();
   pwm_set(DUTY);
   adc_init();
-  timer2_init();
+  lcd_timer_init();
   lcd.begin(16,2);               // initialize the lcd
-  lcd.home ();                   // go home
+  lcd.home();                   // go home
 
   sei();
 
@@ -79,6 +80,14 @@ ISR(ADC_vect)
   ADCSRA |= 1<<ADSC; // start new conversion
 }
 
-ISR(TIMER2_COMPA_vect){
-
+ISR(TIMER2_COMPA_vect)
+{
+  TIMER_DELAY++;
+  if (TIMER_DELAY >= 30){
+    lcd.print("SETPOINT: "+String(float(SETPOINT*DIVIDER)));
+    lcd.setCursor(0, 2);
+    lcd.print("OUTPUT: "+String(float(OUTPUT_VOLTAGE*DIVIDER)));
+    lcd.home();
+    TIMER_DELAY = 0;
+  }
 }
