@@ -12,6 +12,7 @@
 #include <defines.h>
 #include <LiquidCrystal.h>
 
+volatile uint16_t OUTPUT_VOLTAGE_ARRAY[10];
 volatile uint16_t OUTPUT_VOLTAGE;
 volatile uint16_t ADC_VALUE;
 volatile uint8_t ADCLOW;
@@ -21,6 +22,19 @@ volatile uint8_t TIMER_DELAY = 0;
 
 // LiquidCrystal lcd(RS, E, D4, D5, D6, D7);
 LiquidCrystal lcd(12, 11, 7, 4, 3, 2);
+
+void adc_avg(void){
+  switch (i) {
+    case 10:
+      for (i=0; i<10; i++){
+       sum+= OUTPUT_VOLTAGE_ARRAY[i];
+      }
+      OUTPUT_VOLTAGE = sum/i;
+      sum = 0;
+      i = 0;
+      break;
+  }
+}
 
 int main(void)
 {
@@ -36,6 +50,10 @@ int main(void)
 
   while(1) // infinite loop
   {
+    if (ADIF){
+      adc_avg();
+    }
+
     if (OUTPUT_VOLTAGE > SETPOINT){
       if (DUTY >= MAX_DUTY){
         pwm_set(MAX_DUTY);
@@ -70,7 +88,8 @@ ISR(ADC_vect)
   switch (tmp) {
     case 0:
       ADMUX++;
-      OUTPUT_VOLTAGE = ADC_VALUE;
+      OUTPUT_VOLTAGE_ARRAY[i] = ADC_VALUE;
+      i++;
       break;
     case 1:
       ADMUX &= 0XF8;
@@ -83,7 +102,7 @@ ISR(ADC_vect)
 ISR(TIMER2_COMPA_vect)
 {
   TIMER_DELAY++;
-  if (TIMER_DELAY >= 30){
+  if (TIMER_DELAY >= 60){
     lcd.print("SETPOINT: "+String(float(SETPOINT*DIVIDER)));
     lcd.setCursor(0, 2);
     lcd.print("OUTPUT: "+String(float(OUTPUT_VOLTAGE*DIVIDER)));
