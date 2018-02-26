@@ -12,7 +12,7 @@
 #include <defines.h>
 #include <LiquidCrystal.h>
 
-volatile uint16_t OUTPUT_VOLTAGE_ARRAY[10];
+volatile uint16_t OUTPUT_VOLTAGE_ARRAY[30];
 volatile uint16_t OUTPUT_VOLTAGE;
 volatile uint16_t ADC_VALUE;
 volatile uint8_t ADCLOW;
@@ -25,13 +25,16 @@ LiquidCrystal lcd(12, 11, 7, 4, 3, 2);
 
 void adc_avg(void){
   switch (i) {
-    case 10:
-      for (i=0; i<10; i++){
+    case 30:
+      for (i=0; i<30; i++){
        sum+= OUTPUT_VOLTAGE_ARRAY[i];
       }
       OUTPUT_VOLTAGE = sum/i;
       sum = 0;
       i = 0;
+      break;
+
+    default:
       break;
   }
 }
@@ -43,8 +46,8 @@ int main(void)
   pwm_set(DUTY);
   adc_init();
   lcd_timer_init();
-  lcd.begin(16,2);               // initialize the lcd
-  lcd.home();                   // go home
+  lcd.begin(16,2); // initialize the lcd
+  lcd.home(); // go home
 
   sei();
 
