@@ -9,6 +9,7 @@
 #include <Arduino.h>
 #include <timer.h>
 #include <adc.h>
+#include <board.h>
 #include <defines.h>
 #include <LiquidCrystal.h>
 
@@ -17,11 +18,13 @@ volatile uint16_t OUTPUT_VOLTAGE;
 volatile uint16_t ADC_VALUE;
 volatile uint8_t ADCLOW;
 volatile uint16_t SETPOINT;
+volatile uint16_t CURRENT;
 volatile uint8_t DUTY = 0;
 volatile uint8_t TIMER_DELAY = 0;
+volatile uint8_t PAGE = 0;
 
 // LiquidCrystal lcd(RS, E, D4, D5, D6, D7);
-LiquidCrystal lcd(12, 11, 7, 4, 3, 2);
+LiquidCrystal lcd(12, 11, 9, 8, 7, 4);
 
 void adc_avg(void){
   switch (i) {
@@ -33,7 +36,6 @@ void adc_avg(void){
       sum = 0;
       i = 0;
       break;
-
     default:
       break;
   }
@@ -46,6 +48,7 @@ int main(void)
   pwm_set(DUTY);
   adc_init();
   lcd_timer_init();
+  board_init();
   lcd.begin(16,2); // initialize the lcd
   lcd.home(); // go home
 
@@ -95,21 +98,37 @@ ISR(ADC_vect)
       i++;
       break;
     case 1:
-      ADMUX &= 0XF8;
+      ADMUX++;
       SETPOINT = ADC_VALUE;
       break;
+    case 2:
+      ADMUX &= 0XF8;
+      CURRENT = ADC_VALUE;
+      break;
   }
-  ADCSRA |= 1<<ADSC; // start new conversion
+  ADCSRA |= (1<<ADSC); // start new conversion
 }
 
 ISR(TIMER2_COMPA_vect)
 {
   TIMER_DELAY++;
   if (TIMER_DELAY >= 60){
-    lcd.print("SETPOINT: "+String(float(SETPOINT*DIVIDER)));
-    lcd.setCursor(0, 2);
-    lcd.print("OUTPUT: "+String(float(OUTPUT_VOLTAGE*DIVIDER)));
-    lcd.home();
-    TIMER_DELAY = 0;
+    if (PAGE == 0){
+      lcd.print("SETPOINT: "+String(float(SETPOINT*VOLT_DIV)));
+      lcd.setCursor(0, 2);
+      lcd.print("OUTPUT: "+String(float(OUTPUT_VOLTAGE*VOLT_DIV)));
+      lcd.home();
+      TIMER_DELAY = 0;
+    }
+    else {
+      lcd.clear();
+      lcd.print("CURRENT: "+String(float(CURRENT*CURR_DIV)));
+      lcd.home();
+    }
   }
+}
+
+ISR(INT0_vect)
+{
+  PAGE = !PAGE;
 }
