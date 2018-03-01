@@ -18,6 +18,7 @@ volatile uint16_t OUTPUT_VOLTAGE;
 volatile uint16_t ADC_VALUE;
 volatile uint8_t ADCLOW;
 volatile uint16_t SETPOINT;
+volatile uint16_t CURRENT_ARRAY[30];
 volatile uint16_t CURRENT;
 volatile uint8_t DUTY = 0;
 volatile uint8_t TIMER_DELAY = 0;
@@ -31,10 +32,25 @@ void adc_avg(void){
     case 30:
       for (i=0; i<30; i++){
        sum+= OUTPUT_VOLTAGE_ARRAY[i];
+       curr_sum+= CURRENT_ARRAY[i];
       }
       OUTPUT_VOLTAGE = sum/i;
+      CURRENT = curr_sum/i;
       sum = 0;
       i = 0;
+      curr_sum = 0;
+      break;
+    default:
+      break;
+  }
+  switch (j) {
+    case 30:
+      for (j=0; j<30; j++){
+       curr_sum+= CURRENT_ARRAY[j];
+      }
+      CURRENT = curr_sum/j;
+      j = 0;
+      curr_sum = 0;
       break;
     default:
       break;
@@ -103,7 +119,8 @@ ISR(ADC_vect)
       break;
     case 2:
       ADMUX &= 0XF8;
-      CURRENT = ADC_VALUE;
+      CURRENT_ARRAY[i] = ADC_VALUE;
+      j++;
       break;
   }
   ADCSRA |= (1<<ADSC); // start new conversion
@@ -117,18 +134,17 @@ ISR(TIMER2_COMPA_vect)
       lcd.print("SETPOINT: "+String(float(SETPOINT*VOLT_DIV)));
       lcd.setCursor(0, 2);
       lcd.print("OUTPUT: "+String(float(OUTPUT_VOLTAGE*VOLT_DIV)));
-      lcd.home();
-      TIMER_DELAY = 0;
     }
     else {
-      lcd.clear();
-      lcd.print("CURRENT: "+String(float(CURRENT*CURR_DIV)));
-      lcd.home();
+      lcd.print("CURRENT: "+String(float(((CURRENT*BIT_DIV)-ACS_OFFSET)/CURR_DIV)));
     }
+    lcd.home();
+    TIMER_DELAY = 0;
   }
 }
 
 ISR(INT0_vect)
 {
+  lcd.clear();
   PAGE = !PAGE;
 }
