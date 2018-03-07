@@ -8,9 +8,9 @@
 #include <avr/interrupt.h>
 #include <Arduino.h>
 #include <timer.h>
+#include <defines.h>
 #include <adc.h>
 #include <board.h>
-#include <defines.h>
 #include <LiquidCrystal.h>
 
 volatile uint16_t OUTPUT_VOLTAGE_ARRAY[50];
@@ -18,7 +18,7 @@ volatile uint16_t OUTPUT_VOLTAGE;
 volatile uint16_t ADC_VALUE;
 volatile uint8_t ADCLOW;
 volatile uint16_t SETPOINT;
-volatile uint16_t CURRENT_ARRAY[50];
+volatile uint16_t CURRENT_RAW[16];
 volatile uint16_t CURRENT;
 volatile uint8_t DUTY = 0;
 volatile uint8_t TIMER_DELAY = 0;
@@ -26,6 +26,15 @@ volatile uint8_t PAGE = 0;
 
 // LiquidCrystal lcd(RS, E, D4, D5, D6, D7);
 LiquidCrystal lcd(12, 11, 9, 8, 7, 4);
+
+void set_vcc_vars(void)
+{
+  VCC = readVcc()/1000.0;
+  SENSITIVITY = 0.066*(VCC/5.0); // to convert count to current
+  BIT_DIV = VCC/1023;
+  ACS_OFFSET = VCC/2.13;
+  adc_init();
+}
 
 void voltage_avg(void){
   switch (i) {
@@ -44,9 +53,9 @@ void voltage_avg(void){
 
 void curr_avg(void){
   switch (j) {
-    case 50:
-      for (j=0; j<50; j++){
-       curr_sum+= CURRENT_ARRAY[j];
+    case 16:
+      for (j=0; j<16; j++){
+       curr_sum+= CURRENT_RAW[j];
       }
       CURRENT = curr_sum/(j+1);
       j = 0;
@@ -60,9 +69,10 @@ void curr_avg(void){
 int main(void)
 {
   Serial.begin(115200);
+  adc_init();
+  set_vcc_vars();
   pwm_init();
   pwm_set(DUTY);
-  adc_init();
   lcd_timer_init();
   board_init();
   lcd.begin(16,2); // initialize the lcd
@@ -120,7 +130,7 @@ ISR(ADC_vect)
       break;
     case 2:
       ADMUX &= 0XF8;
-      CURRENT_ARRAY[j] = ADC_VALUE;
+      CURRENT_RAW[j] = ADC_VALUE;
       j++;
       break;
   }
@@ -138,15 +148,17 @@ ISR(TIMER2_COMPA_vect)
       lcd.print("OUTPUT: "+String(float(OUTPUT_VOLTAGE*VOLT_DIV)));
     }
     else {
-      if ((ACS_MIN <= CURRENT) && (CURRENT < ACS_OFFSET)){
-        lcd.print("CURRENT: -"+String(float((ACS_OFFSET-CURRENT)*BIT_DIV/CURR_DIV)));
+      if ((ACS_MIN <= CURRENT) && (CURRENT < (ACS_OFFSET/BIT_DIV))){
+        lcd.print("CURRENT: -"+String((ACS_OFFSET-(CURRENT*BIT_DIV))/SENSITIVITY));
       }
-      else if (CURRENT == ACS_OFFSET){
+      else if (CURRENT == (ACS_OFFSET/BIT_DIV)){
         lcd.print("CURRENT: "+String(float(0)));
       }
       else {
-        lcd.print("CURRENT: "+String(float((CURRENT-ACS_OFFSET)*BIT_DIV/CURR_DIV)));
+        lcd.print("CURRENT: "+String((((CURRENT*BIT_DIV)-ACS_OFFSET))/SENSITIVITY));
       }
+      lcd.setCursor(0, 2);
+      lcd.print("VCC: "+String(VCC));
     }
     lcd.home();
     TIMER_DELAY = 0;
