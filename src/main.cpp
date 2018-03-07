@@ -13,12 +13,12 @@
 #include <board.h>
 #include <LiquidCrystal.h>
 
-volatile uint16_t OUTPUT_VOLTAGE_ARRAY[50];
+volatile uint16_t OUTPUT_VOLTAGE_ARRAY[voltage_arr];
 volatile uint16_t OUTPUT_VOLTAGE;
 volatile uint16_t ADC_VALUE;
 volatile uint8_t ADCLOW;
 volatile uint16_t SETPOINT;
-volatile uint16_t CURRENT_RAW[16];
+volatile uint16_t CURRENT_RAW[curr_arr];
 volatile uint16_t CURRENT;
 volatile uint8_t DUTY = 0;
 volatile uint8_t TIMER_DELAY = 0;
@@ -33,14 +33,14 @@ void set_vcc_vars(void)
   SENSITIVITY = 0.066*(VCC/5.0); // to convert count to current
   BIT_DIV = VCC/1023;
   ACS_OFFSET = VCC/2.13;
-  adc_init();
 }
 
-void voltage_avg(void){
+void voltage_avg(void)
+{
   switch (i) {
-    case 50:
-      for (i=0; i<50; i++){
-       volt_sum+= OUTPUT_VOLTAGE_ARRAY[i];
+    case voltage_arr:
+      for (i=0; i<voltage_arr; i++){
+       volt_sum += OUTPUT_VOLTAGE_ARRAY[i];
       }
       OUTPUT_VOLTAGE = volt_sum/(i+1);
       volt_sum = 0;
@@ -51,11 +51,12 @@ void voltage_avg(void){
   }
 }
 
-void curr_avg(void){
+void curr_avg(void)
+{
   switch (j) {
-    case 16:
-      for (j=0; j<16; j++){
-       curr_sum+= CURRENT_RAW[j];
+    case curr_arr:
+      for (j=0; j<curr_arr; j++){
+       curr_sum += CURRENT_RAW[j];
       }
       CURRENT = curr_sum/(j+1);
       j = 0;
@@ -141,13 +142,13 @@ ISR(TIMER2_COMPA_vect)
 {
   TIMER_DELAY++;
   if (TIMER_DELAY >= 30){
-
     if (PAGE == 0){
       lcd.print("SETPOINT: "+String(float(SETPOINT*VOLT_DIV)));
       lcd.setCursor(0, 2);
       lcd.print("OUTPUT: "+String(float(OUTPUT_VOLTAGE*VOLT_DIV)));
     }
     else {
+      set_vcc_vars();
       if ((ACS_MIN <= CURRENT) && (CURRENT < (ACS_OFFSET/BIT_DIV))){
         lcd.print("CURRENT: -"+String((ACS_OFFSET-(CURRENT*BIT_DIV))/SENSITIVITY));
       }
