@@ -8,6 +8,6 @@
 #define ADC_H
 
 int adc_init(void); // initialize adc module, return 0 on success
-long readVcc();
+long readVcc(); // get the supply voltage
 
 #endif
