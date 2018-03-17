@@ -5,8 +5,8 @@
 #include <adc.h>
 
 #define MAX_DUTY 255
-#define MIN_DUTY 255*0.01
-#define VOLT_DIV 5.94*BIT_DIV
+#define MIN_DUTY 1
+#define VOLT_DIV 11*BIT_DIV
 #define ACS_MIN 102
 #define ACS_MAX 930
 
@@ -22,7 +22,7 @@ const int curr_arr = 16;
 // initialize VCC and variables that rely on it
 float VCC = 0;
 float ACS_OFFSET;
-float SENSITIVITY;
+float SENSITIVITY = 0.066;
 float BIT_DIV;
 
 #endif
