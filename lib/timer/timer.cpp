@@ -38,3 +38,10 @@ int lcd_timer_init(void)
 
   return 0;
 }
+
+void millisec_init(void)
+{
+  TCCR1B |= (1<<CS12) | (1<<WGM12);
+  TIMSK1 |= (1<<OCIE1A);
+  OCR1A = 250;
+}
