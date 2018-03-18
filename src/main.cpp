@@ -13,50 +13,48 @@
 #include <board.h>
 #include <LiquidCrystal.h>
 
-/* volitile variables */
-volatile uint16_t OUTPUT_VOLTAGE_ARRAY[voltage_arr];
-volatile uint16_t ADC_VALUE;
-volatile uint8_t ADCLOW;
-volatile uint16_t CURRENT_RAW[curr_arr];
-volatile float CURRENT;
-volatile uint8_t TIMER_DELAY = 0;
-volatile uint8_t PAGE = 0;
-
-volatile uint8_t DUTY;
-volatile float OUTPUT_VOLTAGE;
-volatile float SETPOINT;
-
-/*PID Variables*/
-float kp, ki;
-float errSum, lastErr;
-unsigned long lastTime;
-
+/*****************
+CLASS DEFINITIONS
+******************/
 // LiquidCrystal lcd(RS, E, D4, D5, D6, D7);
 LiquidCrystal lcd(12, 11, 9, 8, 7, 4);
 
+/*****************
+FUNCTION DEFINITIONS
+******************/
 void compute_pid()
 {
    /*How long since we last calculated*/
-   unsigned long now = millis();
-   float timeChange = (float)(now - lastTime);
+   unsigned long now = millisec;
+   double timeChange = (double)(now - lastTime);
 
    /*Compute all the working error variables*/
-   float error = SETPOINT - OUTPUT_VOLTAGE;
+   double error = SETPOINT - OUTPUT_VOLTAGE;
    errSum += (error * timeChange);
+   double dInput = (OUTPUT_VOLTAGE - lastInput);
 
    /*Compute PID Output*/
-   map(error, 0, 1023.0, 0, 255);
-   DUTY = kp * error + ki * errSum;
+   DUTY = (kp * error) + (ki * errSum) + (kd * dInput);
+   DUTY = map(DUTY, 0, 1023.0, 0, 255);
 
    /*Remember some variables for next time*/
-   lastErr = error;
+   lastInput = OUTPUT_VOLTAGE;
    lastTime = now;
 }
 
-void set_pid(float KP, float KI)
+void set_pid(float KP, float KI, double KD, char DIRECTION)
 {
+  if (KP<0 || KI<0|| KD<0) return;
+
   kp = KP;
   ki = KI;
+  kd = KD;
+
+  if(DIRECTION == REVERSE){
+    kp = (0 - KP);
+    ki = (0 - KI);
+    kd = (0 - KD);
+ }
 }
 
 /* initialize VCC dependant variables */
@@ -99,6 +97,9 @@ void curr_avg(void)
   }
 }
 
+/*****************
+ MAIN LOOP
+******************/
 int main(void)
 {
   Serial.begin(115200);
@@ -107,7 +108,10 @@ int main(void)
   set_vcc_vars();
   pwm_init();
   pwm_set(DUTY);
-  set_pid(1, 0.1);
+  millisec_init();
+
+  /* set PID parameters */
+  set_pid(1,0,0, REVERSE);
 
   /* initialize the lcd */
   lcd_timer_init();
@@ -125,21 +129,31 @@ int main(void)
       curr_avg();
     }
 
-    /* PID Controller for maintaining the output voltage
-    Need to maintain an overdamped system so the current limiting
-    does not kick in and drastically reduce the output
-    */
+    /* do nothing if the setpoint is less than the input
+       otherwise the PID gets confused and tries to compensate
+       causing weird output values */
+    if (SETPOINT*VOLT_DIV < VIN){
+      continue;
+    }
+
+    /* PID Controller for maintaining the output voltage */
     compute_pid();
-    pwm_set(DUTY);
+
     if (DUTY >= MAX_DUTY){
       pwm_set(MAX_DUTY);
     }
     else if (DUTY <= MIN_DUTY){
       pwm_set(MIN_DUTY);
     }
+    else {
+      pwm_set(DUTY);
+    }
   }
 }
 
+/*****************
+INTERRUPT ROUTINES
+******************/
 /* ADC interrupt to cycle through ADMUX and get analog values */
 ISR(ADC_vect)
 {
@@ -161,10 +175,15 @@ ISR(ADC_vect)
       SETPOINT = ADC_VALUE;
       break;
     case 2:
+      ADMUX++;
+      VIN = ADC_VALUE;
+      break;
+    case 3:
       ADMUX &= 0XF8;
       CURRENT_RAW[j] = ADC_VALUE;
       j++;
       break;
+
   }
   ADCSRA |= (1<<ADSC); // start new conversion
 }
@@ -174,9 +193,9 @@ ISR(TIMER2_COMPA_vect)
   TIMER_DELAY++;
   if (TIMER_DELAY >= 30){ // divide the timer interrupt by 30
     if (PAGE == 0){
-      lcd.print("SETPOINT: "+String(float(SETPOINT*VOLT_DIV)));
+      lcd.print("SETPOINT: "+String(SETPOINT*VOLT_DIV));
       lcd.setCursor(0, 2);
-      lcd.print("OUTPUT: "+String(float(OUTPUT_VOLTAGE*VOLT_DIV)));
+      lcd.print("OUTPUT: "+String(OUTPUT_VOLTAGE*VOLT_DIV));
     }
     else {
       set_vcc_vars();
@@ -184,7 +203,7 @@ ISR(TIMER2_COMPA_vect)
         lcd.print("CURRENT: -"+String((ACS_OFFSET-(CURRENT*BIT_DIV))/SENSITIVITY));
       }
       else if (CURRENT == (ACS_OFFSET/BIT_DIV)){
-        lcd.print("CURRENT: "+String(float(0)));
+        lcd.print("CURRENT: "+String(0.00));
       }
       else {
         lcd.print("CURRENT: "+String((((CURRENT*BIT_DIV)-ACS_OFFSET))/SENSITIVITY));
@@ -201,4 +220,10 @@ ISR(INT0_vect)
 {
   lcd.clear();
   PAGE = !PAGE; // change the lcd page
+}
+
+/* Need to get number of milliseconds for PID Controller*/
+ISR(TIMER1_COMPA_vect)
+{
+  millisec++;
 }
