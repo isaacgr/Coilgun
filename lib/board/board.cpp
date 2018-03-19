@@ -8,7 +8,8 @@
 
 int board_init(void){
 
-  DDRD &= ~(1<<DDD2);  // PORTB pin 5 as input
+  /* LCD Page change pin */
+  DDRD &= ~(1<<DDD2);  // PORTD pin 2 as input
 
   PORTD |= (1 << PORTD2);    // turn On the Pull-up
 
@@ -16,5 +17,22 @@ int board_init(void){
   EIMSK |= (1<<INT0);  // enable interrupt for this pin
   EIFR |= (1<<INTF0); // enable interrupt flag
 
+  /* Boost converter enable pin */
+  DDRD |= (1<<DDD5);  // PORTD pin 5 as output
+  PORTD |= (0<<PORTD5); // initialize port as off
+
   return 0;
+}
+
+int boost_enable(int STATE)
+{
+  if (STATE == 1){
+    PORTD |= (1<<PORTD5); // initialize port as on
+    return 1;
+  }
+  else {
+    PORTD |= (0<<PORTD5); // initialize port as off
+    return 0;
+  }
+
 }
