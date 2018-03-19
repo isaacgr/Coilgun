@@ -110,6 +110,9 @@ int main(void)
   pwm_set(DUTY);
   millisec_init();
 
+  /* boost enable */
+  boosting = boost_enable(BOOST_OFF);
+
   /* set PID parameters */
   set_pid(1,0,0, REVERSE);
 
@@ -132,8 +135,14 @@ int main(void)
     /* do nothing if the setpoint is less than the input
        otherwise the PID gets confused and tries to compensate
        causing weird output values */
-    if (SETPOINT*VOLT_DIV < VIN){
+    if ((SETPOINT*VOLT_DIV < VIN) && (boosting)){
+      DUTY = 0;
+      pwm_set(DUTY);
+      boosting = boost_enable(BOOST_OFF);
       continue;
+    }
+    else if ((SETPOINT*VOLT_DIV >= 13.0) && (!boosting)){
+      boosting = boost_enable(BOOST_ON);
     }
 
     /* PID Controller for maintaining the output voltage */
