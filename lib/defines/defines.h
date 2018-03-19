@@ -14,6 +14,8 @@ DEFINITIONS
 #define ACS_MAX 930
 #define DIRECT 0
 #define REVERSE 1
+#define BOOST_ON 1
+#define BOOST_OFF 0
 
 /*****************
 TEMPORARY VARIABLES
@@ -23,7 +25,7 @@ volatile uint8_t i = 0;
 volatile uint8_t j = 0;
 uint16_t volt_sum = 0;
 uint16_t curr_sum = 0;
-const int voltage_arr = 32;
+const int voltage_arr = 16;
 const int curr_arr = 16;
 
 /*****************
@@ -49,6 +51,11 @@ float kp, ki;
 double kd;
 double errSum, lastInput;
 unsigned long lastTime;
+
+/*****************
+BOOST VARIABLES
+******************/
+char boosting;
 
 /*****************
 VCC VARIABLES
