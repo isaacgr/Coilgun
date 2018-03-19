@@ -13,7 +13,7 @@ int adc_init(void)
   // a new conversion will have to be started after one finishes
 
   ADMUX = 0;  // use ADC0
-  DIDR0 |= (1<<ADC0D) | (1<<ADC1D); // disable the digial inputs on the adc
+  DIDR0 |= (1<<ADC0D) | (1<<ADC1D) | (1<<ADC2D) | (1<<ADC3D); // disable the digial inputs on the adc
   ADMUX |= (1<<REFS0);  // AVcc as the reference
   ADMUX |= (0<<ADLAR);  // left justified, 10bit resolution
 
