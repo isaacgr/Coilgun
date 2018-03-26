@@ -30,12 +30,14 @@ void compute_pid()
 
    /*Compute all the working error variables*/
    double error = SETPOINT - OUTPUT_VOLTAGE;
+   error = map(error, 0, 1023.0, 0, 255);
    errSum += (error * timeChange);
    double dInput = (OUTPUT_VOLTAGE - lastInput);
+   dInput = map(dInput, 0, 1023.0, 0, 255);
 
    /*Compute PID Output*/
    DUTY = (kp * error) + (ki * errSum) + (kd * dInput);
-   DUTY = map(DUTY, 0, 1023.0, 0, 255);
+   //DUTY = map(DUTY, 0, 1023.0, 0, 255);
 
    /*Remember some variables for next time*/
    lastInput = OUTPUT_VOLTAGE;
@@ -114,7 +116,7 @@ int main(void)
   boosting = boost_enable(BOOST_OFF);
 
   /* set PID parameters */
-  set_pid(1,0,0, REVERSE);
+  set_pid(4,0.35,0, REVERSE);
 
   /* initialize the lcd */
   lcd_timer_init();
@@ -126,36 +128,36 @@ int main(void)
   /* infinite loop for main program */
   while(1)
   {
+
     /* check averages after each conversion */
     if (ADIF){
       voltage_avg();
       curr_avg();
     }
-
     /* do nothing if the setpoint is less than the input
        otherwise the PID gets confused and tries to compensate
        causing weird output values */
-    if ((SETPOINT*VOLT_DIV < VIN) && (boosting)){
+    if (SETPOINT*VOLT_DIV < 13.0){
+      boosting = boost_enable(BOOST_OFF);
       DUTY = 0;
       pwm_set(DUTY);
-      boosting = boost_enable(BOOST_OFF);
       continue;
     }
-    else if ((SETPOINT*VOLT_DIV >= 13.0) && (!boosting)){
+    else if (SETPOINT*VOLT_DIV >= 13.0) {
       boosting = boost_enable(BOOST_ON);
-    }
 
-    /* PID Controller for maintaining the output voltage */
-    compute_pid();
+      /* PID Controller for maintaining the output voltage */
+      compute_pid();
 
-    if (DUTY >= MAX_DUTY){
-      pwm_set(MAX_DUTY);
-    }
-    else if (DUTY <= MIN_DUTY){
-      pwm_set(MIN_DUTY);
-    }
-    else {
-      pwm_set(DUTY);
+      if (DUTY >= MAX_DUTY){
+        pwm_set(MAX_DUTY);
+      }
+      else if (DUTY <= MIN_DUTY){
+        pwm_set(MIN_DUTY);
+      }
+      else {
+        pwm_set(DUTY);
+      }
     }
   }
 }
