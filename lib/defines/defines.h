@@ -55,7 +55,7 @@ unsigned long lastTime;
 /*****************
 BOOST VARIABLES
 ******************/
-char boosting;
+bool boosting;
 
 /*****************
 VCC VARIABLES
