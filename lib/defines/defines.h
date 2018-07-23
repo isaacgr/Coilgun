@@ -8,7 +8,7 @@
 DEFINITIONS
 ******************/
 #define MAX_DUTY 255
-#define MIN_DUTY 0
+#define MIN_DUTY 1
 #define VOLT_DIV 11*BIT_DIV
 #define ACS_MIN 102
 #define ACS_MAX 930
