@@ -1,7 +1,9 @@
 # Buck-Boost Converter
 
 [Great Scott](https://www.youtube.com/watch?v=ZiD_X-uo_TQ&t=1s)
+
 [Instrucatble](https://www.instructables.com/id/DIY-BuckBoost-Converter-Flyback/)
+
 [Adding Current Limiting to Buck Boost](https://www.youtube.com/watch?v=8uoo5pAeWZI)
 
 ---
@@ -37,7 +39,7 @@ The non-inverting implementation is basically the two regulators merged together
 
 The inverting configuration is shown below
 
-![switchmode8.gif](https://www.electronics-tutorials.ws/power/switchmode8.gif)
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Buckboost_conventions.svg/1024px-Buckboost_conventions.svg.png)
 
 In this configuration, the output is inverted.
 
