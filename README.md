@@ -8,19 +8,20 @@
 - [Calculations](#Calculations)
   * [Converter](#Converter)
     + [Basics](#Basics)
-    + [Values](#Values)
-  * [Current Limiter](#Current-Limiter)
 
 <!-- tocstop -->
 
 ---
 
 [Great Scott](https://www.youtube.com/watch?v=ZiD_X-uo_TQ&t=1s)
+
 [Instrucatble](https://www.instructables.com/id/DIY-BuckBoost-Converter-Flyback/)
+
 [Adding Current Limiting to Buck Boost](https://www.youtube.com/watch?v=8uoo5pAeWZI)
 
 ---
 
+<a name="Motivation"/>
 ### Motivation
 
 I have been in the process of building a boost converter for some time. The main purpose was to act as the charging circuit for my capacitor bank (which would be used in a coil gun project). I wanted to use an arduino, but write the code in C for the learning experience. 
@@ -35,6 +36,7 @@ The goal of the redesign for this project is to modify the existing design and i
 > 2. Differential Op-amp feedback loop for better stability (currently using resitor divider)
 > 3. Documentation of implementation
 
+<a name="Technical-Requirements"/>
 ### Technical Requirements
 
 1. Display setpoint, output voltage and current draw
@@ -44,6 +46,7 @@ The goal of the redesign for this project is to modify the existing design and i
 5. Reasonably fast response time for changing load
 6. Maintain voltage with no load
 
+<a name="Overview"/>
 ### Overview
 
 [Switch Mode Power Supplies](https://www.electronics-tutorials.ws/power/switch-mode-power-supply.html)
@@ -66,6 +69,7 @@ The result is that the output voltage can be greater or smaller than the input v
 
 The output voltage is given by `Vout = Vin(D/1-D)`
 
+<a name="Calculations"/>
 ### Calculations
 
 [DC-DC Converters](http://www.eng.auburn.edu/~agrawvd/COURSE/READING/LOWP/Erikson_DC_2_DC.pdf)
@@ -73,8 +77,10 @@ The output voltage is given by `Vout = Vin(D/1-D)`
 [Buck-Boost Power Stages](http://www.ti.com/lit/an/slva059a/slva059a.pdf)
 [Choppers](https://www.electrical4u.com/chopper-dc-to-dc-converter/)
 
+<a name="Converter"/>
 #### Converter
 
+<a name="Basics"/>
 ##### Basics
 
 The basic theory of operation for a buck-boost converter is given below. 
@@ -92,7 +98,3 @@ Evaluating the above equations gives:
 <a href="https://www.codecogs.com/eqnedit.php?latex=\begin{gathered}&space;\frac{DV_S}{Lf}&space;=&space;-\frac{V_O}{L}&space;T_{OFF}&space;\\&space;\Downarrow&space;\\&space;V_O&space;=&space;\frac{DV_S}{1-D}&space;\end{gathered}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\begin{gathered}&space;\frac{DV_S}{Lf}&space;=&space;-\frac{V_O}{L}&space;T_{OFF}&space;\\&space;\Downarrow&space;\\&space;V_O&space;=&space;\frac{DV_S}{1-D}&space;\end{gathered}" title="\begin{gathered} \frac{DV_S}{Lf} = -\frac{V_O}{L} T_{OFF} \\ \Downarrow \\ V_O = \frac{DV_S}{1-D} \end{gathered}" /></a>
 
 This means we can vary D from 0 to 1 to decrease or increase the voltage
-
-##### Values
-
-#### Current Limiter
