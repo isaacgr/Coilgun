@@ -9,7 +9,7 @@ DEFINITIONS
 ******************/
 #define MAX_DUTY 255
 #define MIN_DUTY 1
-#define VOLT_DIV 11*BIT_DIV
+#define VOLT_DIV 11 * BIT_DIV
 #define ACS_MIN 102
 #define ACS_MAX 930
 #define DIRECT 0
@@ -44,18 +44,10 @@ volatile float SETPOINT;
 volatile float VIN;
 
 /*****************
-PID VARIABLES
-******************/
-uint8_t DUTY;
-float kp, ki;
-double kd;
-double errSum, lastInput;
-unsigned long lastTime;
-
-/*****************
 BOOST VARIABLES
 ******************/
 bool boosting;
+uint8_t DUTY;
 
 /*****************
 VCC VARIABLES
