@@ -94,6 +94,8 @@ int main(void)
   /* infinite loop for main program */
   while (1)
   {
+
+    boosting = boost_enable(BOOST_ON);
     /* check averages after each conversion */
     if (ADIF)
     {
